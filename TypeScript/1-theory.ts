@@ -1,39 +1,41 @@
+type Request = { amount: number };
+
 abstract class MoneyTransfer {
-  public process(): void {
-    this.validateAccounts();
-    this.authorizeTransfer();
-    this.transferFunds();
-    this.notifyParties();
+  public process(request: Request): void {
+    this.validateAccounts(request);
+    this.authorizeTransfer(request);
+    this.transferFunds(request);
+    this.notifyParties(request);
   }
 
-  protected validateAccounts(): void {
+  protected validateAccounts(request: Request): void {
     console.log('Validating sender and receiver accounts...');
   }
 
-  protected notifyParties(): void {
+  protected notifyParties(request: Request): void {
     console.log('Notifying sender and receiver of the transaction...');
   }
 
-  protected abstract authorizeTransfer(): void;
-  protected abstract transferFunds(): void;
+  protected abstract authorizeTransfer(request: Request): void;
+  protected abstract transferFunds(request: Request): void;
 }
 
 class DomesticTransfer extends MoneyTransfer {
-  protected authorizeTransfer(): void {
+  protected authorizeTransfer(request: Request): void {
     console.log('Authorizing domestic transfer...');
   }
 
-  protected transferFunds(): void {
+  protected transferFunds(request: Request): void {
     console.log('Domestic transfer...');
   }
 }
 
 class InternationalTransfer extends MoneyTransfer {
-  protected authorizeTransfer(): void {
+  protected authorizeTransfer(request: Request): void {
     console.log('Authorizing international transfer...');
   }
 
-  protected transferFunds(): void {
+  protected transferFunds(request: Request): void {
     console.log('International transfer with currency conversion...');
   }
 }
@@ -41,11 +43,9 @@ class InternationalTransfer extends MoneyTransfer {
 // Usage
 
 console.log('--- DomesticTransfer ---');
-
 const domesticTransfer = new DomesticTransfer();
-domesticTransfer.process();
+domesticTransfer.process({ amount: 100 });
 
 console.log('--- InternationalTransfer ---');
-
 const internationalTransfer = new InternationalTransfer();
-internationalTransfer.process();
+internationalTransfer.process({ amount: 100 });
