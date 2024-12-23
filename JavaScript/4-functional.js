@@ -1,9 +1,6 @@
 'use strict';
 
-const pipe =
-  (...fns) =>
-  (x) =>
-    fns.reduce((v, f) => f(v), x);
+const pipe = (...fns) => (x) => fns.reduce((v, f) => f(v), x);
 
 const branch = (cases) => (request) => {
   const key = Object.keys(cases)[0];
@@ -50,11 +47,14 @@ const moneyTransfer = pipe(
   notifyParties,
   branch({
     kind: {
+      domestic: pipe(
+        authorizeTransferDomestic,
+        transferFundsDomestic,
+      ),
       international: pipe(
         authorizeTransferInternational,
         transferFundsInternational,
       ),
-      domestic: pipe(authorizeTransferDomestic, transferFundsDomestic),
     },
   }),
 );
