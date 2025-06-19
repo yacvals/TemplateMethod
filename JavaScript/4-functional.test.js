@@ -59,3 +59,118 @@ describe('pipe function', () => {
     expect(log).toEqual(['fn1', 'fn2', 'fn3']);
   });
 });
+
+
+describe('branch function', () => {
+  test('should execute correct branch based on request property', () => {
+    const mockDomestic = jest.fn((req) => ({ ...req, processed: 'domestic' }));
+    const mockInternational = jest.fn((req) => ({ ...req, processed: 'international' }));
+    
+    const brancher = branch({
+      type: {
+        domestic: mockDomestic,
+        international: mockInternational
+      }
+    });
+    
+    const request = { type: 'domestic', amount: 100 };
+    const result = brancher(request);
+    
+    expect(mockDomestic).toHaveBeenCalledWith(request);
+    expect(mockInternational).not.toHaveBeenCalled();
+    expect(result.processed).toBe('domestic');
+  });
+
+  test('should work with different branch keys', () => {
+    const mockHandlerA = jest.fn((req) => ({ ...req, result: 'A' }));
+    const mockHandlerB = jest.fn((req) => ({ ...req, result: 'B' }));
+    
+    const brancher = branch({
+      category: {
+        typeA: mockHandlerA,
+        typeB: mockHandlerB
+      }
+    });
+    
+    const request = { category: 'typeB', data: 'test' };
+    const result = brancher(request);
+    
+    expect(mockHandlerB).toHaveBeenCalledWith(request);
+    expect(mockHandlerA).not.toHaveBeenCalled();
+    expect(result.result).toBe('B');
+  });
+
+  test('should throw error when no matching way found', () => {
+    const brancher = branch({
+      type: {
+        domestic: (req) => req,
+        international: (req) => req
+      }
+    });
+    
+    const request = { type: 'unknown', amount: 100 };
+    
+    expect(() => brancher(request)).toThrow('No matching way found');
+  });
+
+  test('should throw error when property is missing', () => {
+    const brancher = branch({
+      type: {
+        domestic: (req) => req,
+        international: (req) => req
+      }
+    });
+    
+    const request = { amount: 100 }; // missing 'type' property
+    
+    expect(() => brancher(request)).toThrow('No matching way found');
+  });
+
+  test('should work with complex branch handlers', () => {
+    const complexHandler = pipe(
+      (req) => ({ ...req, step1: true }),
+      (req) => ({ ...req, step2: true })
+    );
+    
+    const brancher = branch({
+      workflow: {
+        complex: complexHandler,
+        simple: (req) => ({ ...req, simple: true })
+      }
+    });
+    
+    const request = { workflow: 'complex', id: 1 };
+    const result = brancher(request);
+    
+    expect(result).toEqual({
+      workflow: 'complex',
+      id: 1,
+      step1: true,
+      step2: true
+    });
+  });
+
+  test('should handle numeric keys', () => {
+    const brancher = branch({
+      status: {
+        1: (req) => ({ ...req, result: 'active' }),
+        0: (req) => ({ ...req, result: 'inactive' })
+      }
+    });
+    
+    const result = brancher({ status: 1 });
+    expect(result.result).toBe('active');
+  });
+
+  test('should handle boolean keys', () => {
+    const brancher = branch({
+      isActive: {
+        true: (req) => ({ ...req, result: 'enabled' }),
+        false: (req) => ({ ...req, result: 'disabled' })
+      }
+    });
+    
+    const result = brancher({ isActive: true });
+    expect(result.result).toBe('enabled');
+  });
+});
