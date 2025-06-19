@@ -71,3 +71,5 @@ moneyTransfer({ amount: 100, kind: 'domestic' });
 
 console.log('--- International Workflow ---');
 moneyTransfer({ amount: 100, kind: 'international' });
+
+module.exports = { pipe, branch };
